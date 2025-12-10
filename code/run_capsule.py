@@ -90,6 +90,11 @@ if __name__ == "__main__":
 
     data_folder_resolved = data_folder.resolve()
     logging.info(f"Data folder {data_folder.absolute()} resolved to: {data_folder_resolved}")
+    for p in data_folder_resolved.iterdir():
+        logging.info(f"Found in data folder: {p.name}: p.is_dir()={p.is_dir()}, p.is_symlink()={p.is_symlink()}")
+        if p.is_dir():
+            for sp in p.iterdir():
+                logging.info(f"  Found in subfolder: {sp.name}: sp.is_dir()={sp.is_dir()}, sp.is_symlink()={sp.is_symlink()}")
     zarr_folders = [p for p in data_folder_resolved.glob('**/*.zarr') if "recording" in p.name]
     logging.info(f"Number of zarr recording folders found: {len(zarr_folders)}")
     i = 0

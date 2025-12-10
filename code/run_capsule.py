@@ -6,6 +6,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 # GENERAL IMPORTS
 import argparse
 import sys
+from glob import glob
 import numpy as np
 import warnings
 from pathlib import Path
@@ -88,7 +89,10 @@ if __name__ == "__main__":
     recordings_folder.mkdir(parents=True, exist_ok=True)
     flattened_folder.mkdir(parents=True, exist_ok=True)
 
-    zarr_folders = [p for p in data_folder.glob('**/*.zarr') if "recording" in p.name]
+    zarr_folders = [
+        Path(p) for p in list(glob(str(data_folder / "**/*.zarr"), recursive=True)) if "recording" in Path(p).name
+    ]
+    logging.info(f"Number of zarr recording folders found: {len(zarr_folders)}")
     i = 0
     logging.info("Recording to be processed in parallel:")
     for recording_zarr_folder in zarr_folders:

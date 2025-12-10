@@ -85,23 +85,26 @@ if __name__ == "__main__":
     include_annotations = False
     recordings_folder = results_folder / "recordings"
     flattened_folder = results_folder / "flattened"
+    recordings_folder.mkdir(parents=True, exist_ok=True)
+    flattened_folder.mkdir(parents=True, exist_ok=True)
 
-    zarr_folders = [p for p in data_folder.glob("*") if p.endswith(".zarr") and "recording" in p.name]
+    zarr_folders = [p for p in data_folder.glob('**/*.zarr') if "recording" in p.name]
     i = 0
+    logging.info("Recording to be processed in parallel:")
     for recording_zarr_folder in zarr_folders:
         sorting_zarr_folder = recording_zarr_folder.parent / "sorting.zarr"
         if not sorting_zarr_folder.is_dir():
             continue
-        session_name = recording_zarr_folder.parent[1].name
+        session_name = recording_zarr_folder.parents[1].name
         recording_name = recording_zarr_folder.parent.name
         recording = si.load(recording_zarr_folder)
         gt_sorting = si.load(sorting_zarr_folder)
 
         if DEBUG:
-            recording_one = recording.frame_slice(
+            recording = recording.frame_slice(
                 start_frame=0,
                 end_frame=min(
-                    int(DEBUG_DURATION * recording.sampling_frequency), recording_one.get_num_samples()
+                    int(DEBUG_DURATION * recording.sampling_frequency), recording.get_num_samples()
                 ),
             )
             duration = np.round(recording.get_total_duration(), 2)
@@ -114,7 +117,6 @@ if __name__ == "__main__":
             input_folder=session_name,
             debug=DEBUG,
         )
-        print(f"Relative to: {data_folder}")
         rec_str = f"\t{recording_name}\n\t\tDuration: {duration} s - Num. channels: {recording.get_num_channels()}"
         logging.info(rec_str)
 
@@ -128,4 +130,4 @@ if __name__ == "__main__":
         # save sorting
         gt_sorting.dump_to_json(flattened_folder / f"gt_{recording_name}.json", relative_to=data_folder)
         i += 1
-    logging.info(f"Generated {len(i)} hybrid config files")
+    logging.info(f"Generated {i} hybrid config files")

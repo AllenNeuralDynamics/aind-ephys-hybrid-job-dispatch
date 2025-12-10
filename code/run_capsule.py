@@ -6,6 +6,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 # GENERAL IMPORTS
 import argparse
 import sys
+import glob
 import numpy as np
 import warnings
 from pathlib import Path
@@ -95,7 +96,7 @@ if __name__ == "__main__":
         if p.is_dir():
             for sp in p.iterdir():
                 logging.info(f"  Found in subfolder: {sp.name}: sp.is_dir()={sp.is_dir()}, sp.is_symlink()={sp.is_symlink()}")
-    zarr_folders = [p for p in data_folder_resolved.glob('**/*.zarr') if "recording" in p.name]
+    zarr_folders = [p for p in data_folder_resolved.glob('**/*.zarr', recurse_symlinks=True) if "recording" in p.name]
     logging.info(f"Number of zarr recording folders found: {len(zarr_folders)}")
     i = 0
     logging.info("Recording to be processed in parallel:")

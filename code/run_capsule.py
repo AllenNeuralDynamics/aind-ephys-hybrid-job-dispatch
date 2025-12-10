@@ -90,7 +90,7 @@ if __name__ == "__main__":
     flattened_folder.mkdir(parents=True, exist_ok=True)
 
     zarr_folders = [
-        Path(p) for p in list(glob(str(data_folder / "**/*.zarr"), recursive=True)) if "recording" in p.name
+        Path(p) for p in list(glob(str(data_folder / "**/*.zarr"), recursive=True)) if "recording" in Path(p).name
     ]
     logging.info(f"Number of zarr recording folders found: {len(zarr_folders)}")
     i = 0

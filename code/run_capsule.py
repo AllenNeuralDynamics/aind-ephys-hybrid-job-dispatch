@@ -88,8 +88,10 @@ if __name__ == "__main__":
     recordings_folder.mkdir(parents=True, exist_ok=True)
     flattened_folder.mkdir(parents=True, exist_ok=True)
 
-    zarr_folders = [p for p in data_folder.glob('**/*.zarr') if "recording" in p.name]
-    logging.info(data_folder.absolute(), "Number of zarr recording folders found:", len(zarr_folders))
+    data_folder_resolved = data_folder.resolve()
+    logging.info(f"Data folder {data_folder.absolute()} resolved to: {data_folder_resolved}")
+    zarr_folders = [p for p in data_folder_resolved.glob('**/*.zarr') if "recording" in p.name]
+    logging.info(f"Number of zarr recording folders found: {len(zarr_folders)}")
     i = 0
     logging.info("Recording to be processed in parallel:")
     for recording_zarr_folder in zarr_folders:

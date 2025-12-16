@@ -109,9 +109,15 @@ if __name__ == "__main__":
                 start_frame=0,
                 end_frame=min(
                     int(DEBUG_DURATION * recording.sampling_frequency), recording.get_num_samples()
-                ),
+                )
             )
             duration = np.round(recording.get_total_duration(), 2)
+            gt_sorting = gt_sorting.frame_slice(
+                start_frame=0,
+                end_frame=min(
+                    int(DEBUG_DURATION * recording.sampling_frequency), recording.get_num_samples()
+                )
+            )
             
         job_dict = dict(
             session_name=session_name,

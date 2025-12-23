@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
     logging.info(f"Looking for recordings in {data_folder}")
     zarr_folders = []
-    for root, dirs, files in os.walk(data_folder):
+    for root, dirs, files in os.walk(data_folder, followlinks=True):
         for d in dirs:
             if d == "recording.zarr":
                 zarr_folders.append(Path(root) / d)

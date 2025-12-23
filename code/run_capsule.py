@@ -48,6 +48,13 @@ debug_duration_help = (
 debug_duration_group.add_argument("--debug-duration", default=30, help=debug_duration_help)
 debug_duration_group.add_argument("static_debug_duration", nargs="?", default=None, help=debug_duration_help)
 
+max_num_regordings_group = parser.add_mutually_exclusive_group()
+max_num_regordings_help = (
+    "Maximum number of recordings to process. Default: process all recordings"
+)
+max_num_regordings_group.add_argument("--max-recordings", default=None, help=max_num_regordings_help)
+max_num_regordings_group.add_argument("static_max_recordings", nargs="?", default=None, help=max_num_regordings_help)
+
 parser.add_argument("--params", default=None, help="Path to the parameters file or JSON string. If given, it will override all other arguments.")
 
 if __name__ == "__main__":
@@ -68,18 +75,26 @@ if __name__ == "__main__":
 
         DEBUG = params.get("debug", False)
         DEBUG_DURATION = float(params.get("debug_duration"))
+        MAX_RECORDINGS = params.get("max_recordings", None)
     else:
         DEBUG = (
             args.static_debug.lower() == "true" if args.static_debug
             else args.debug
         )
         DEBUG_DURATION = float(args.static_debug_duration or args.debug_duration)
+        MAX_RECORDINGS = args.static_max_recordings or args.max_recordings
+        if MAX_RECORDINGS is not None:
+            MAX_RECORDINGS = int(MAX_RECORDINGS)
+            # if -1, set to None
+            if MAX_RECORDINGS == -1:
+                MAX_RECORDINGS = None
    
     logging.basicConfig(level=logging.INFO, stream=sys.stdout, format="%(message)s")
 
     logging.info(f"Running job dispatcher with the following parameters:")
     logging.info(f"\tDEBUG: {DEBUG}")
     logging.info(f"\tDEBUG DURATION: {DEBUG_DURATION}")
+    logging.info(f"\tMAX RECORDINGS: {MAX_RECORDINGS}")
 
     recording_dict = {}
 
@@ -95,6 +110,12 @@ if __name__ == "__main__":
     logging.info(f"Number of zarr recording folders found: {len(zarr_folders)}")
     i = 0
     logging.info("Recording to be processed in parallel:")
+
+    if MAX_RECORDINGS is not None and MAX_RECORDINGS < len(zarr_folders):
+        logging.info(f"Randomly sampling {MAX_RECORDINGS} recordings")
+        rng = np.random.default_rng(seed=0)
+        zarr_folders = rng.choice(zarr_folders, size=MAX_RECORDINGS, replace=False)
+    
     for recording_zarr_folder in zarr_folders:
         sorting_zarr_folder = recording_zarr_folder.parent / "sorting.zarr"
         if not sorting_zarr_folder.is_dir():

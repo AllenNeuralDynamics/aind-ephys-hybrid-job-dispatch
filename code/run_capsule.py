@@ -142,6 +142,8 @@ if __name__ == "__main__":
                     int(DEBUG_DURATION * recording.sampling_frequency), recording.get_num_samples()
                 )
             )
+        else:
+            duration = np.round(recording.get_total_duration(), 2)
             
         job_dict = dict(
             session_name=session_name,

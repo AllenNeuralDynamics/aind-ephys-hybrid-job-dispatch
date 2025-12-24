@@ -5,7 +5,6 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # GENERAL IMPORTS
 import argparse
-import os
 import sys
 import numpy as np
 import warnings
@@ -106,19 +105,26 @@ if __name__ == "__main__":
 
     logging.info(f"Looking for recordings in {data_folder}")
     zarr_folders = []
-    for root, dirs, files in os.walk(data_folder, followlinks=True):
-        for d in dirs:
-            if d == "recording.zarr":
-                zarr_folders.append(Path(root) / d)
+    # here we assume that the data_folder includes multiple sessions, each with
+    # multiple cases (with a recording.zarr and sorting.zarr)
+    sessions = [s for s in data_folder.iterdir() if s.is_dir()]
+    logging.info(f"Number of sessions found: {len(sessions)}")
+    for session in sessions:
+        cases = [c for c in session.iterdir() if c.is_dir()]
+        logging.info(f"\tNumber of cases found in session {session.name}: {len(cases)}")
+        for case in cases:
+            recording_zarr_folder = case / "recording.zarr"
+            if recording_zarr_folder.is_dir():
+                zarr_folders.append(recording_zarr_folder)
     logging.info(f"Number of zarr recording folders found: {len(zarr_folders)}")
-    i = 0
-    logging.info("Recording to be processed in parallel:")
 
     if MAX_RECORDINGS is not None and MAX_RECORDINGS < len(zarr_folders):
         logging.info(f"Randomly sampling {MAX_RECORDINGS} recordings")
         rng = np.random.default_rng(seed=0)
         zarr_folders = rng.choice(zarr_folders, size=MAX_RECORDINGS, replace=False)
-    
+
+    i = 0
+    logging.info("Recording to be processed in parallel:")
     for recording_zarr_folder in zarr_folders:
         sorting_zarr_folder = recording_zarr_folder.parent / "sorting.zarr"
         if not sorting_zarr_folder.is_dir():

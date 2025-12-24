@@ -105,9 +105,10 @@ if __name__ == "__main__":
 
     logging.info(f"Looking for recordings in {data_folder}")
     zarr_folders = []
-    # here we assume that the data_folder includes multiple sessions, each with
-    # multiple cases (with a recording.zarr and sorting.zarr)
-    sessions = [s for s in data_folder.iterdir() if s.is_dir()]
+    # here we assume that the data_folder includes a mapped "ecephys" folder which 
+    # contains multiple sessions, each with multiple cases (with a recording.zarr and sorting.zarr)
+    ecephys_session_folder = [s for s in data_folder.iterdir() if s.is_dir()][0]
+    sessions = [s for s in ecephys_session_folder.iterdir() if s.is_dir()]
     logging.info(f"Number of sessions found: {len(sessions)}")
     for session in sessions:
         cases = [c for c in session.iterdir() if c.is_dir()]

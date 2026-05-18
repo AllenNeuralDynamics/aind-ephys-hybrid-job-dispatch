@@ -7,19 +7,15 @@
 		"mount_secrets": true
 	},
 	"installers": {
-		"conda": {
-			"packages": [
-				{
-					"name": "jupyterlab",
-					"version": "4.5.7"
-				}
-			]
-		},
 		"pip": {
 			"packages": [
 				{
 					"name": "boto3",
 					"version": "1.43.9"
+				},
+				{
+					"name": "s3fs",
+					"version": "0.4.2"
 				},
 				{
 					"name": "spikeinterface",

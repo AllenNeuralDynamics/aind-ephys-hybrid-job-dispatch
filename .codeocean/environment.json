@@ -1,16 +1,28 @@
 {
 	"version": 1,
-	"base_image": "codeocean/jupyterlab:3.6.1-miniconda4.12.0-python3.9-ubuntu20.04",
+	"base_image": "codeocean/mambaforge3:24.5.0-0-python3.12.4-ubuntu22.04",
 	"options": {
 		"registry_host_arg": true,
 		"git_ask_pass": true,
 		"mount_secrets": true
 	},
 	"installers": {
+		"conda": {
+			"packages": [
+				{
+					"name": "jupyterlab",
+					"version": "4.5.7"
+				}
+			]
+		},
 		"pip": {
 			"packages": [
 				{
-					"name": "spikeinterface[full]",
+					"name": "boto3",
+					"version": "1.43.9"
+				},
+				{
+					"name": "spikeinterface",
 					"version": "0.103.2"
 				}
 			],

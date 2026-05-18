@@ -28,6 +28,19 @@
 			"type": "text",
 			"value_type": "string",
 			"default_value": "-1"
+		},
+		{
+			"id": "83snDFvzpQoKg4he",
+			"name": "s3 path",
+			"description": "Path to s3 location with hybrid datasets.",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "s3://aind-benchmark-data/ephys-hybrid-evaluation/sorters/np1/",
+			"extra_data": [
+				"s3://aind-benchmark-data/ephys-hybrid-evaluation/sorters/np1/",
+				"s3://aind-benchmark-data/ephys-hybrid-evaluation/sorters/np2/",
+				"none"
+			]
 		}
 	]
 }

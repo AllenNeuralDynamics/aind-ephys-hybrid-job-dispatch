@@ -1,0 +1,33 @@
+{
+	"version": 1,
+	"parameters": [
+		{
+			"id": "6LqiMZVkQlEtt9Gm",
+			"name": "debug",
+			"description": "When true, sessions will be cut to 30s",
+			"type": "list",
+			"value_type": "string",
+			"default_value": "false",
+			"extra_data": [
+				"false",
+				"true"
+			]
+		},
+		{
+			"id": "qI1xRsDIvUoZmhRa",
+			"name": "debug duration",
+			"description": "Duration of recording in debug mode, default 30s",
+			"type": "text",
+			"value_type": "string",
+			"default_value": "30"
+		},
+		{
+			"id": "EvcvFjBPJ4UvIuTP",
+			"name": "num recordings",
+			"description": "Number of recordings to use for hybrid benchmark. USe -1 for all recordings.",
+			"type": "text",
+			"value_type": "string",
+			"default_value": "-1"
+		}
+	]
+}

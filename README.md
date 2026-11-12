@@ -12,8 +12,13 @@ The capsule reads its parameters from `../params.json` (it fails if the file is 
 |-----|---------|-------------|
 | `debug` | `false` | Whether to run in debug mode, clipping recordings and GT sortings |
 | `debug_duration` | `30` | Duration in seconds of the clipped recording in debug mode |
+| `max_recordings` | `null` | Maximum number of recordings to process, randomly sub-sampled. `null` or `-1` means all |
+| `s3_path` | `null` | S3 location of the hybrid datasets (`s3://.../<session>/<case>/{recording,sorting}.zarr`). `null`, `""` or `"none"` means use `../data` |
+| `seed` | `null` | Random seed for the `max_recordings` sub-sampling |
 
-An optional top-level `logging` section with `"package": "logging"` passes `logging_cfg` to `logging.basicConfig`.
+An optional top-level `logging` section configures logging: `"package": "logging"` passes `logging_cfg` to `logging.basicConfig`, `"package": "log-schema"` sets up `log_schema` (with `pipeline_name` and `acquisition_name`).
+
+Without `s3_path`, the data folder must contain one mapped folder with `<session>/<case>/{recording,sorting}.zarr`.
 
 Minimal example `params.json`:
 
@@ -21,7 +26,10 @@ Minimal example `params.json`:
 {
     "job_dispatch": {
         "debug": false,
-        "debug_duration": 30
+        "debug_duration": 30,
+        "max_recordings": null,
+        "s3_path": null,
+        "seed": null
     }
 }
 ```

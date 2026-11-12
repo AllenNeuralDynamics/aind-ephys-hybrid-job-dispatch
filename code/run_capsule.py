@@ -4,7 +4,6 @@ warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # GENERAL IMPORTS
-import argparse
 import sys
 from glob import glob
 import numpy as np
@@ -22,6 +21,7 @@ from spikeinterface.core.core_tools import SIJsonEncoder
 
 data_folder = Path("../data")
 results_folder = Path("../results")
+PARAMS_FILE = Path("../params.json")
 
 
 # Here we look for all "recording.zarr" recordings in the data folder with associated "sorting.zarr"
@@ -33,49 +33,45 @@ results_folder = Path("../results")
 # sessionN ...
 
 
-# Define argument parser
-parser = argparse.ArgumentParser(description="Dispatch jobs for AIND ephys pipeline")
+def run() -> None:
+    if not PARAMS_FILE.is_file():
+        raise ValueError(f"Params file not found: {PARAMS_FILE}")
+    with open(PARAMS_FILE, "r") as f:
+        full_params = json.load(f)
+    job_dispatch_params = full_params["job_dispatch"]
+    LOGGING = full_params.get("logging", None)
 
-debug_group = parser.add_mutually_exclusive_group()
-debug_help = "Whether to run in DEBUG mode. Default: False"
-debug_group.add_argument("--debug", action="store_true", help=debug_help)
-debug_group.add_argument("static_debug", nargs="?", help=debug_help)
-
-debug_duration_group = parser.add_mutually_exclusive_group()
-debug_duration_help = (
-    "Duration of clipped recording in debug mode. Only used if debug is enabled. Default: 30 seconds"
-)
-debug_duration_group.add_argument("--debug-duration", default=30, help=debug_duration_help)
-debug_duration_group.add_argument("static_debug_duration", nargs="?", default=None, help=debug_duration_help)
-
-parser.add_argument("--params", default=None, help="Path to the parameters file or JSON string. If given, it will override all other arguments.")
-
-if __name__ == "__main__":
-    args = parser.parse_args()
-
-    # if params is given, override all other arguments
-    PARAMS = args.params
-    if PARAMS is not None:
-        # try to parse the JSON string first to avoid file name too long error
-        try:
-            params = json.loads(PARAMS)
-        except json.JSONDecodeError:
-            if Path(PARAMS).is_file():
-                with open(PARAMS, "r") as f:
-                    params = json.load(f)
-            else:
-                raise ValueError(f"Invalid parameters: {PARAMS} is not a valid JSON string or file path")
-
-        DEBUG = params.get("debug", False)
-        DEBUG_DURATION = float(params.get("debug_duration"))
+    # setup logging before any other logging call
+    if LOGGING is None:
+        logging.basicConfig(level="INFO", stream=sys.stdout, format="%(message)s")
     else:
-        DEBUG = (
-            args.static_debug.lower() == "true" if args.static_debug
-            else args.debug
-        )
-        DEBUG_DURATION = float(args.static_debug_duration or args.debug_duration)
-   
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout, format="%(message)s")
+        if LOGGING["package"] == "logging":
+            logging_cfg = LOGGING.get("logging_cfg", {})
+            logging.basicConfig(stream=sys.stdout, **logging_cfg)
+        elif LOGGING["package"] == "log-schema":
+            import log_schema
+
+            pipeline_name = LOGGING.get("pipeline_name", "AIND Ephys Hybrid Benchmark")
+            acquisition_name = LOGGING.get("acquisition_name", "unknown")
+
+            config = LOGGING.get("logging_cfg")
+            if config is not None and len(config) == 0:
+                config = None
+            log_schema.setup_logging(
+                config=config,
+                model={
+                    "pipeline_name": pipeline_name,
+                    "acquisition_name": acquisition_name,
+                    "process_name": "Hybrid Job Dispatch"
+                }
+            )
+
+    logging.info("Begin processing...", extra={"event_type": "stage_start"})
+
+
+    DEBUG = job_dispatch_params.get("debug", False)
+    DEBUG_DURATION = float(job_dispatch_params.get("debug_duration", 30))
+
 
     logging.info(f"Running job dispatcher with the following parameters:")
     logging.info(f"\tDEBUG: {DEBUG}")
@@ -111,14 +107,14 @@ if __name__ == "__main__":
                     int(DEBUG_DURATION * recording.sampling_frequency), recording.get_num_samples()
                 )
             )
-            duration = np.round(recording.get_total_duration(), 2)
             gt_sorting = gt_sorting.frame_slice(
                 start_frame=0,
                 end_frame=min(
                     int(DEBUG_DURATION * recording.sampling_frequency), recording.get_num_samples()
                 )
             )
-            
+        duration = np.round(recording.get_total_duration(), 2)
+
         job_dict = dict(
             session_name=session_name,
             recording_name=recording_name,
@@ -141,3 +137,12 @@ if __name__ == "__main__":
         gt_sorting.dump_to_json(flattened_folder / f"gt_{recording_name}.json", relative_to=data_folder)
         i += 1
     logging.info(f"Generated {i} hybrid config files")
+    logging.info("Pipeline stage completed", extra={"event_type": "stage_complete"})
+
+
+if __name__ == "__main__":
+    try:
+        run()
+    except Exception as e:
+        logging.exception("Pipeline stage failed", extra={"event_type": "stage_error"})
+        raise
